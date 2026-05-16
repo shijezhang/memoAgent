@@ -150,3 +150,23 @@ def test_apply_guideline_dedup(kg_updater, tmp_path):
     kg_updater.apply_guideline(g2, sm)
     guidelines = sm.get_guidelines_for("X")
     assert len(guidelines) == 1
+
+
+def test_apply_guideline_writes_reflection_log(kg_updater, tmp_path):
+    from pathlib import Path
+    import json
+    log_file = tmp_path / "reflection_log.jsonl"
+    sm = SemanticMemory(kg_file=tmp_path / "semantic.json")
+    sm.add_entity("Y", "concept", {})
+    guideline = Guideline(
+        rule="Y requires special handling",
+        source_entities=["Y"],
+        timestamp="2026-05-16T10:00:00",
+    )
+    kg_updater.apply_guideline(guideline, sm, log_file=log_file)
+    assert log_file.exists()
+    lines = log_file.read_text().strip().split("\n")
+    assert len(lines) == 1
+    entry = json.loads(lines[0])
+    assert entry["rule"] == "Y requires special handling"
+    assert "source_entities" in entry
