@@ -101,3 +101,52 @@ def test_reflect_uses_reflection_prompt(reflector):
     assert "学术推理审查器" in call_args
     assert "test" in call_args
     assert "correct way" in call_args
+
+
+from memo_agent.reflection.kg_updater import KGUpdater
+from memo_agent.memory.semantic import SemanticMemory
+
+
+@pytest.fixture
+def kg_updater(tmp_path):
+    from pathlib import Path
+    sm = SemanticMemory(kg_file=tmp_path / "semantic.json")
+    return KGUpdater()
+
+
+def test_apply_guideline_creates_rule_node(kg_updater, tmp_path):
+    sm = SemanticMemory(kg_file=tmp_path / "semantic.json")
+    sm.add_entity("MAGCN", "algorithm", {})
+    sm.add_entity("cross-network attention", "mechanism", {})
+    guideline = Guideline(
+        rule="MAGCN cross-network attention must align features first",
+        source_entities=["MAGCN", "cross-network attention"],
+        timestamp="2026-05-16T10:00:00",
+    )
+    kg_updater.apply_guideline(guideline, sm)
+    guidelines = sm.get_guidelines_for("MAGCN")
+    assert len(guidelines) == 1
+    assert "align features first" in guidelines[0]
+
+
+def test_apply_guideline_creates_missing_entities(kg_updater, tmp_path):
+    sm = SemanticMemory(kg_file=tmp_path / "semantic.json")
+    guideline = Guideline(
+        rule="Test rule for NEW_ENTITY",
+        source_entities=["NEW_ENTITY"],
+        timestamp="2026-05-16T10:00:00",
+    )
+    kg_updater.apply_guideline(guideline, sm)
+    assert sm.get_entity("NEW_ENTITY") is not None
+    assert len(sm.get_guidelines_for("NEW_ENTITY")) == 1
+
+
+def test_apply_guideline_dedup(kg_updater, tmp_path):
+    sm = SemanticMemory(kg_file=tmp_path / "semantic.json")
+    sm.add_entity("X", "concept", {})
+    g1 = Guideline(rule="X must be processed carefully", source_entities=["X"], timestamp="2026-01-01")
+    g2 = Guideline(rule="X must be processed carefully and thoroughly", source_entities=["X"], timestamp="2026-01-02")
+    kg_updater.apply_guideline(g1, sm)
+    kg_updater.apply_guideline(g2, sm)
+    guidelines = sm.get_guidelines_for("X")
+    assert len(guidelines) == 1
