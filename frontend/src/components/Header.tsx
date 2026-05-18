@@ -1,7 +1,7 @@
 import { Bot, Settings } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
-export function Header() {
+function Header() {
   return (
     <header className="h-14 flex items-center justify-between px-4 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="flex items-center gap-2">
@@ -17,3 +17,5 @@ export function Header() {
     </header>
   )
 }
+
+export default Header
