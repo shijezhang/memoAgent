@@ -23,6 +23,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps) {
       <div className="absolute right-2 top-2 z-10">
         <button
           onClick={handleCopy}
+          aria-label={copied ? 'Copied' : 'Copy code'}
           className={cn(
             'p-1.5 rounded bg-gray-700 hover:bg-gray-600 transition-colors',
             copied && 'bg-green-600'

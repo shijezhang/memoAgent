@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { CodeBlock } from './CodeBlock'
@@ -12,12 +13,33 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
+  const markdownComponents = useMemo(() => ({
+    code({ className, children, ...props }: { className?: string; children?: React.ReactNode }) {
+      const match = /language-(\w+)/.exec(className || '')
+      const isInline = !match
+
+      if (isInline) {
+        return (
+          <code className="px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-sm" {...props}>
+            {children}
+          </code>
+        )
+      }
+
+      return (
+        <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
+      )
+    }
+  }), [])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn('flex mb-4', isUser ? 'justify-end' : 'justify-start')}
+      role="log"
+      aria-live="polite"
     >
       <div
         className={cn(
@@ -31,26 +53,7 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           {isUser ? (
             <div className="whitespace-pre-wrap">{message.content}</div>
           ) : (
-            <ReactMarkdown
-              components={{
-                code({ className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  const isInline = !match
-
-                  if (isInline) {
-                    return (
-                      <code className="px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-sm" {...props}>
-                        {children}
-                      </code>
-                    )
-                  }
-
-                  return (
-                    <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
-                  )
-                },
-              }}
-            >
+            <ReactMarkdown components={markdownComponents}>
               {message.content}
             </ReactMarkdown>
           )}

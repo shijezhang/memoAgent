@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 
 interface UseWebSocketOptions {
   onMessage?: (text: string) => void
@@ -10,6 +10,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
 
+  const onMessageRef = useRef(options.onMessage)
+  const onDoneRef = useRef(options.onDone)
+  const onErrorRef = useRef(options.onError)
+
+  useEffect(() => {
+    onMessageRef.current = options.onMessage
+    onDoneRef.current = options.onDone
+    onErrorRef.current = options.onError
+  }, [options.onMessage, options.onDone, options.onError])
+
+  useEffect(() => {
+    return () => {
+      wsRef.current?.close()
+    }
+  }, [])
+
   const connect = useCallback(() => {
     const wsUrl = `${window.location.origin.replace('http', 'ws')}/api/chat/ws`
     const ws = new WebSocket(wsUrl)
@@ -20,14 +36,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     ws.onmessage = (event) => {
       if (event.data === '[DONE]') {
-        options.onDone?.()
+        onDoneRef.current?.()
       } else {
-        options.onMessage?.(event.data)
+        onMessageRef.current?.(event.data)
       }
     }
 
     ws.onerror = (error) => {
-      options.onError?.(error)
+      onErrorRef.current?.(error)
     }
 
     ws.onclose = () => {
@@ -36,7 +52,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     wsRef.current = ws
     return ws
-  }, [options])
+  }, [])
 
   const send = useCallback((message: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
