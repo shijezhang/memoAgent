@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Badge } from '../components/ui/Badge'
 import { cn } from '../lib/cn'
-import type { KGNode as KGNodeType, KGEdge } from '../api/types'
+import type { KGEdge } from '../api/types'
 
 interface GraphNode {
   id: string
@@ -94,6 +94,7 @@ function KnowledgePage() {
       fetchKnowledgeGraph()
     } catch (error) {
       console.error('Failed to add entity:', error)
+      alert('添加实体失败，请重试')
     }
   }
 
@@ -104,6 +105,7 @@ function KnowledgePage() {
       fetchKnowledgeGraph()
     } catch (error) {
       console.error('Failed to delete entity:', error)
+      alert('删除实体失败，请重试')
     }
   }
 
@@ -151,12 +153,6 @@ function KnowledgePage() {
     }
   }, [selectedNode, graphData.links])
 
-  const filteredNodes = searchTerm
-    ? graphData.nodes.filter((n) =>
-        n.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : null
-
   const selectedNodeData = graphData.nodes.find((n) => n.id === selectedNode)
   const relatedNodes = selectedNode
     ? graphData.links
@@ -185,6 +181,7 @@ function KnowledgePage() {
               placeholder="Search nodes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="搜索节点"
               className="pl-9 pr-4 py-2 w-64 bg-gray-800/80 backdrop-blur border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
@@ -235,7 +232,7 @@ function KnowledgePage() {
               onChange={(e) => setNewEntityName(e.target.value)}
               className="flex-1"
             />
-            <Button onClick={handleAddEntity} disabled={!newEntityName.trim()} size="sm">
+            <Button onClick={handleAddEntity} disabled={!newEntityName.trim()} size="sm" aria-label="添加实体">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -263,6 +260,7 @@ function KnowledgePage() {
                   size="sm"
                   onClick={() => handleDeleteEntity(selectedNodeData.id)}
                   className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                  aria-label="删除实体"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -288,6 +286,7 @@ function KnowledgePage() {
                           key={nodeId}
                           onClick={() => setSelectedNode(nodeId)}
                           className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                          aria-label={`选择 ${node.name.substring(0, 15)}`}
                         >
                           {node.name.substring(0, 15)}
                         </button>
