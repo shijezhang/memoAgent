@@ -25,15 +25,14 @@ REFLECTION_PROMPT = """你是一个学术推理审查器。以下是一个错误
 class Reflector:
     def __init__(self, llm):
         self._llm = llm
+        self.last_prompt: str = ""
 
-    def reflect(self, error_context: List[dict], correction_hint: dict) -> Optional[Guideline]:
-        context_text = "\n".join(
-            f"{t['role']}: {t['content']}" for t in error_context
-        )
+    def reflect(self, correction_hint: str, source_entities: List[str]) -> Optional[Guideline]:
         prompt = REFLECTION_PROMPT.format(
-            error_context=context_text,
-            correction_hint=correction_hint.get("hint", correction_hint.get("trigger", "")),
+            error_context="",
+            correction_hint=correction_hint,
         )
+        self.last_prompt = prompt
         try:
             response = self._llm.invoke(prompt)
             content = response.content if hasattr(response, "content") else str(response)
@@ -46,10 +45,35 @@ class Reflector:
             logger.warning(f"Failed to extract Guideline from: {content[:200]}")
             return None
 
-        entities = self._extract_entities_from_hint(correction_hint)
         return Guideline(
             rule=guideline_text,
-            source_entities=entities,
+            source_entities=source_entities,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+    def reflect_with_context(
+        self, error_context: str, correction_hint: str, source_entities: List[str]
+    ) -> Optional[Guideline]:
+        prompt = REFLECTION_PROMPT.format(
+            error_context=error_context,
+            correction_hint=correction_hint,
+        )
+        self.last_prompt = prompt
+        try:
+            response = self._llm.invoke(prompt)
+            content = response.content if hasattr(response, "content") else str(response)
+        except Exception as e:
+            logger.error(f"Reflector LLM call failed: {e}")
+            return None
+
+        guideline_text = self._parse_guideline(content)
+        if guideline_text is None:
+            logger.warning(f"Failed to extract Guideline from: {content[:200]}")
+            return None
+
+        return Guideline(
+            rule=guideline_text,
+            source_entities=source_entities,
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
@@ -60,11 +84,3 @@ class Reflector:
             return None
         rule = text[idx + len(marker):].strip()
         return rule if rule else None
-
-    def _extract_entities_from_hint(self, correction_hint: dict) -> List[str]:
-        hint = correction_hint.get("hint", "")
-        if not hint:
-            return []
-        words = hint.replace("，", " ").replace("、", " ").replace("的", " ").split()
-        entities = [w.strip() for w in words if len(w.strip()) >= 2]
-        return entities[:5]

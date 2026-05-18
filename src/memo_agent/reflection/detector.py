@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from memo_agent.config import Config
 
@@ -16,6 +16,20 @@ class ReflectionDetector:
             if kw in stripped:
                 return True
         return False
+
+    def check_and_extract(self, user_input: str) -> Tuple[bool, str]:
+        if not self.check(user_input):
+            return False, ""
+        hint = self.extract_hint(user_input)
+        return True, hint
+
+    def extract_hint(self, user_input: str) -> str:
+        stripped = user_input.strip()
+        hint = stripped
+        for kw in self._keywords:
+            hint = hint.replace(kw, "", 1)
+        hint = hint.strip().lstrip(",，、").strip()
+        return hint if hint else stripped
 
     def extract_correction(self, user_input: str) -> Optional[dict]:
         if not self.check(user_input):

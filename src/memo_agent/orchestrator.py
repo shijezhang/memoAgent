@@ -75,27 +75,29 @@ class Orchestrator:
         return response_text
 
     def _handle_reflection(self, user_input: str) -> str:
-        correction = self._detector.extract_correction(user_input)
-        if correction is None:
+        is_reflection, hint = self._detector.check_and_extract(user_input)
+        if not is_reflection:
             return "未能识别纠正内容。"
 
-        error_context = self.working.get_recent(self._config.reflection_recent_turns)
-        guideline = self._reflector.reflect(error_context, correction)
+        recent = self.working.get_recent(2)
+        error_context = ""
+        for msg in recent:
+            if msg["role"] == "assistant":
+                error_context = msg["content"]
+                break
+
+        extracted = self._entity_extractor.extract(user_input + " " + hint)
+        uppercase_names = re.findall(r'[A-Z][A-Z0-9]+', user_input)
+        all_entities = list(dict.fromkeys(extracted + uppercase_names))
+
+        guideline = self._reflector.reflect_with_context(error_context, hint, all_entities)
 
         if guideline is None:
             return "未能提取有效规则。"
 
-        # Extract entities from user input using LLM-based extractor
-        extracted = self._entity_extractor.extract(user_input)
-        # Also find uppercase entity names (algorithm/method acronyms)
-        uppercase_names = re.findall(r'[A-Z][A-Z0-9]+', user_input)
-        all_entities = list(dict.fromkeys(
-            guideline.source_entities + extracted + uppercase_names
-        ))
-        guideline.source_entities = all_entities
-
         self._kg_updater.apply_guideline(
-            guideline, self.semantic, log_file=self._config.reflection_log
+            guideline, self.semantic, log_file=self._config.reflection_log,
+            error_context=error_context, reflection_prompt=self._reflector.last_prompt
         )
 
         return f"已成功提取 Guideline: \"{guideline.rule[:80]}\" 并绑定至语义记忆。"

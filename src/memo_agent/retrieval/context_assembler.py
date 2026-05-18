@@ -8,19 +8,45 @@ from memo_agent.retrieval.entity_extractor import EntityExtractor
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SYSTEM_PROMPT = """你是一个学术研究助手，具备长期记忆和反思能力。
+
+核心行为：
+- 回答学术问题时，优先参考上下文中的 Guidelines（已验证的规则）
+- 如果 Guidelines 与你的判断冲突，以 Guidelines 为准
+- 当用户纠正你的回答时，你会反思并沉淀新的 Guideline
+- 回复语言与用户输入语言一致
+- 回复应当准确、结构化，适当引用来源
+
+上下文结构说明：
+[Guidelines] - 从过去反思中沉淀的规则，最高优先级
+[Knowledge]  - 知识图谱中的实体关系
+[History]    - 相关的历史对话
+[Current]    - 当前会话内容
+"""
+
 
 class ContextAssembler:
-    def __init__(self, entity_extractor: EntityExtractor, max_subgraph_tokens: int = 1000,
-                 max_episodic_tokens: int = 1500, max_context_tokens: int = 128000):
+    def __init__(
+        self,
+        entity_extractor: EntityExtractor,
+        max_subgraph_tokens: int = 1000,
+        max_episodic_tokens: int = 1500,
+        max_context_tokens: int = 128000,
+        system_prompt: str = DEFAULT_SYSTEM_PROMPT,
+    ):
         self._entity_extractor = entity_extractor
         self._max_subgraph_tokens = max_subgraph_tokens
         self._max_episodic_tokens = max_episodic_tokens
         self._max_context_tokens = int(max_context_tokens * 0.8)
+        self._system_prompt = system_prompt
 
     def assemble(self, user_input: str, working: WorkingMemory,
                  episodic: EpisodicMemory, semantic: SemanticMemory) -> str:
         entities = self._entity_extractor.extract(user_input)
         sections: List[Tuple[str, str]] = []
+
+        # System Prompt - always first
+        sections.append(("system", self._system_prompt))
 
         # Priority 1: Guidelines — never truncated
         guidelines = []

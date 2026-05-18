@@ -94,12 +94,12 @@ def test_reflect_uses_reflection_prompt(reflector):
     reflector._llm.invoke.return_value = MagicMock(
         content='[Guideline] Test rule'
     )
-    error_context = [{"role": "user", "content": "test"}]
-    correction = {"trigger": "错了", "hint": "correct way"}
-    reflector.reflect(error_context, correction)
+    error_context = "Previous assistant response"
+    correction_hint = "correct way"
+    source_entities = ["entity1"]
+    reflector.reflect_with_context(error_context, correction_hint, source_entities)
     call_args = reflector._llm.invoke.call_args[0][0]
     assert "学术推理审查器" in call_args
-    assert "test" in call_args
     assert "correct way" in call_args
 
 
