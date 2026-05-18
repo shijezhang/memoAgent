@@ -1,0 +1,68 @@
+{
+  "experiment_name": "retrieval_ablation",
+  "timestamp": "2026-05-18T22:58:11.054920",
+  "metrics": {
+    "baseline_score": 1.0,
+    "vector_only_score": 1.05,
+    "kg_only_score": 1.05,
+    "hybrid_score": 1.05,
+    "kg_contribution": 0.0,
+    "vector_contribution": 0.0,
+    "improvement_vs_baseline": 0.050000000000000044,
+    "elapsed_time_seconds": 554.8264091014862
+  },
+  "details": [
+    {
+      "config_name": "Baseline (无检索)",
+      "use_kg": false,
+      "use_vector": false,
+      "average_score": 1.0,
+      "type_scores": {
+        "type_a": 1.0,
+        "type_b": 1.0,
+        "type_c": 0,
+        "type_d": 0
+      },
+      "total_questions": 20
+    },
+    {
+      "config_name": "Vector-only",
+      "use_kg": false,
+      "use_vector": true,
+      "average_score": 1.05,
+      "type_scores": {
+        "type_a": 1.1,
+        "type_b": 1.0,
+        "type_c": 0,
+        "type_d": 0
+      },
+      "total_questions": 20
+    },
+    {
+      "config_name": "KG-only",
+      "use_kg": true,
+      "use_vector": false,
+      "average_score": 1.05,
+      "type_scores": {
+        "type_a": 1.1,
+        "type_b": 1.0,
+        "type_c": 0,
+        "type_d": 0
+      },
+      "total_questions": 20
+    },
+    {
+      "config_name": "Hybrid (完整)",
+      "use_kg": true,
+      "use_vector": true,
+      "average_score": 1.05,
+      "type_scores": {
+        "type_a": 1.1,
+        "type_b": 1.0,
+        "type_c": 0,
+        "type_d": 0
+      },
+      "total_questions": 20
+    }
+  ]
+}

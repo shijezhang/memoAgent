@@ -1,0 +1,60 @@
+{
+  "experiment_name": "performance_benchmark",
+  "timestamp": "2026-05-18T22:54:10.050736",
+  "metrics": {
+    "p50_latency": 17.771931529045105,
+    "p95_latency": 23.1081120967865,
+    "cold_start_latency": 9.820356845855713,
+    "qps_single": 0.09002068061282985,
+    "qps_concurrent_5": 0.2528897661235251,
+    "memory_peak_mb": 0.0001068115234375,
+    "entity_extraction_ms": 640.6902756009783,
+    "kg_retrieval_ms": 0.5073036466326032,
+    "vector_retrieval_ms": 31.444907188415527,
+    "llm_inference_ms": 16460.43338094439,
+    "elapsed_time_seconds": 311.59776997566223
+  },
+  "details": [
+    {
+      "test": "latency",
+      "results": {
+        "cold_start_latency": 9.820356845855713,
+        "p50_latency": 17.771931529045105,
+        "p95_latency": 23.1081120967865,
+        "avg_latency": 17.14367481640407,
+        "segment_times": {
+          "entity_extraction": 0.6406902756009784,
+          "kg_retrieval": 0.0005073036466326032,
+          "vector_retrieval": 0.03144490718841553,
+          "context_assembly": 0.010592733110700334,
+          "llm_inference": 16.460433380944387
+        },
+        "total_requests": 14
+      }
+    },
+    {
+      "test": "throughput",
+      "results": {
+        "concurrency_1": {
+          "completed": 2,
+          "elapsed": 22.217117071151733,
+          "qps": 0.09002068061282985,
+          "avg_latency": 11.107072949409485
+        },
+        "concurrency_5": {
+          "completed": 10,
+          "elapsed": 39.5429208278656,
+          "qps": 0.2528897661235251,
+          "avg_latency": 14.776431226730347
+        }
+      }
+    },
+    {
+      "test": "memory",
+      "results": {
+        "current_mb": 8.392333984375e-05,
+        "peak_mb": 0.0001068115234375
+      }
+    }
+  ]
+}
