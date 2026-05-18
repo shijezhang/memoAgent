@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { History, Search, ChevronDown, ChevronUp, AlertCircle, Code, GitBranch, FileText } from 'lucide-react'
 import { useStore } from '../store/useStore'
@@ -17,9 +17,9 @@ function ReflectionPage() {
     fetchReflections(limit, entityFilter || undefined)
   }, [fetchReflections, limit, entityFilter])
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id)
-  }
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedId(prev => prev === id ? null : id)
+  }, [])
 
   const formatTimestamp = (ts: string) => {
     try {
@@ -46,12 +46,14 @@ function ReflectionPage() {
                 placeholder="Filter by entity..."
                 value={entityFilter}
                 onChange={(e) => setEntityFilter(e.target.value)}
+                aria-label="Filter by entity"
                 className="pl-9 pr-4 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             <select
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value))}
+              aria-label="Number of entries to show"
               className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value={20}>20</option>
@@ -93,9 +95,10 @@ function ReflectionPage() {
                   {/* Card */}
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                     {/* Header */}
-                    <div
+                    <button
                       onClick={() => toggleExpand(entry.id)}
-                      className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      aria-expanded={expandedId === entry.id}
+                      className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors w-full text-left"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -118,15 +121,15 @@ function ReflectionPage() {
                             )}
                           </div>
                         </div>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                        <div className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                           {expandedId === entry.id ? (
                             <ChevronUp className="w-5 h-5 text-gray-400" />
                           ) : (
                             <ChevronDown className="w-5 h-5 text-gray-400" />
                           )}
-                        </button>
+                        </div>
                       </div>
-                    </div>
+                    </button>
 
                     {/* Expanded Content */}
                     <AnimatePresence>
