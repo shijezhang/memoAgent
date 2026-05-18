@@ -1,5 +1,6 @@
 import { MessageCircle, Network, Brain, ScrollText, Plus } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { useStore } from '../store/useStore'
 
 interface SidebarProps {
   activePage: string
@@ -14,6 +15,19 @@ const navItems = [
 ]
 
 function Sidebar({ activePage, setActivePage }: SidebarProps) {
+  const clearMessages = useStore((state) => state.clearMessages)
+  const messages = useStore((state) => state.messages)
+
+  const handleNewChat = () => {
+    if (messages.length > 0) {
+      if (confirm('确定要开始新对话吗？当前对话将被清空。')) {
+        clearMessages()
+      }
+    } else {
+      clearMessages()
+    }
+  }
+
   return (
     <div className="w-16 bg-gray-100 dark:bg-dark-bg-sidebar flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-700">
       {navItems.map((item) => {
@@ -30,6 +44,7 @@ function Sidebar({ activePage, setActivePage }: SidebarProps) {
                 : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400'
             )}
             title={item.label}
+            aria-label={item.label}
           >
             {isActive && (
               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary-500 rounded-r" />
@@ -43,9 +58,10 @@ function Sidebar({ activePage, setActivePage }: SidebarProps) {
       <div className="flex-1" />
 
       <button
-        onClick={() => {/* TODO: new chat */}}
+        onClick={handleNewChat}
         className="w-12 h-12 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-400 transition-colors"
         title="新对话"
+        aria-label="新对话"
       >
         <Plus className="w-5 h-5" />
       </button>

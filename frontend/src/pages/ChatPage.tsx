@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Square, Sparkles } from 'lucide-react'
 import { useStore } from '../store/useStore'
@@ -10,6 +10,7 @@ import { cn } from '../lib/cn'
 function ChatPage() {
   const [input, setInput] = useState('')
   const [streamingContent, setStreamingContent] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
 
   const messages = useStore((state) => state.messages)
   const sessionId = useStore((state) => state.sessionId)
@@ -21,10 +22,35 @@ function ChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const stopStreamingRef = useRef(false)
+  const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingContent])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopStreamingRef.current = true
+      if (streamingTimeoutRef.current) {
+        clearTimeout(streamingTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Typewriter effect
+  const typewriterEffect = useCallback((text: string, index: number, callback: () => void) => {
+    if (stopStreamingRef.current || index >= text.length) {
+      callback()
+      return
+    }
+
+    setStreamingContent(text.slice(0, index + 1))
+    streamingTimeoutRef.current = setTimeout(() => {
+      typewriterEffect(text, index + 1, callback)
+    }, 20) // 20ms per character
+  }, [])
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -34,33 +60,64 @@ function ChatPage() {
     addMessage({ role: 'user', content: userMessage })
     setLoading(true)
     setStreamingContent('')
-    setStreamingContent('')
+    setIsStreaming(true)
+    stopStreamingRef.current = false
 
     try {
       const response = await chatApi.sendMessage(userMessage, sessionId || undefined)
       setSessionId(response.session_id)
-      addMessage({
-        role: 'assistant',
-        content: response.response,
-        guidelines: response.guidelines_used,
-        isReflection: response.is_reflection,
+
+      // Start typewriter effect
+      typewriterEffect(response.response, 0, () => {
+        // Called when streaming is complete
+        if (!stopStreamingRef.current) {
+          addMessage({
+            role: 'assistant',
+            content: response.response,
+            guidelines: response.guidelines_used,
+            isReflection: response.is_reflection,
+          })
+          fetchMemoryStatus()
+        }
+        setLoading(false)
+        setIsStreaming(false)
+        setStreamingContent('')
       })
-      fetchMemoryStatus()
     } catch (error) {
       addMessage({
         role: 'assistant',
         content: '抱歉，发送消息失败，请重试。',
       })
-    } finally {
       setLoading(false)
-      textareaRef.current?.focus()
+      setIsStreaming(false)
     }
+  }
+
+  const handleStop = () => {
+    stopStreamingRef.current = true
+    if (streamingTimeoutRef.current) {
+      clearTimeout(streamingTimeoutRef.current)
+    }
+    // Add whatever was streamed so far as a message
+    if (streamingContent) {
+      addMessage({
+        role: 'assistant',
+        content: streamingContent,
+      })
+    }
+    setLoading(false)
+    setIsStreaming(false)
+    setStreamingContent('')
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      if (isStreaming) {
+        handleStop()
+      } else {
+        handleSend()
+      }
     }
   }
 
@@ -134,10 +191,11 @@ function ChatPage() {
               disabled={isLoading}
             />
             <Button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
+              onClick={isStreaming ? handleStop : handleSend}
+              disabled={isLoading && !isStreaming}
               className="rounded-xl px-4"
               size="lg"
+              aria-label={isStreaming ? '停止生成' : '发送消息'}
             >
               {isLoading ? (
                 <Square className="w-5 h-5" />
