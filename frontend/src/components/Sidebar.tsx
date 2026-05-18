@@ -32,7 +32,7 @@ function Sidebar({ activePage, setActivePage }: SidebarProps) {
             title={item.label}
           >
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary-500 rounded-r" />
             )}
             <Icon className="w-5 h-5" />
             <span className="text-[10px] mt-1">{item.label}</span>
