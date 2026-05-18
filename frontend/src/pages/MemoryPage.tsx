@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Database, MessageSquare, RefreshCw, Trash2, BookOpen, Cpu } from 'lucide-react'
 import { useStore } from '../store/useStore'
@@ -11,10 +11,8 @@ import type { KGNode } from '../api/types'
 function MemoryPage() {
   const memoryStatus = useStore((state) => state.memoryStatus)
   const fetchMemoryStatus = useStore((state) => state.fetchMemoryStatus)
-  const setActivePage = useStore((state) => state.setSelectedNode)
   const [guidelines, setGuidelines] = useState<KGNode[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [entities, setEntities] = useState<string[]>([])
 
   useEffect(() => {
     fetchMemoryStatus()
@@ -28,8 +26,11 @@ function MemoryPage() {
     }
   }
 
-  const filteredGuidelines = guidelines.filter((g) =>
-    g.rule?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredGuidelines = useMemo(() =>
+    guidelines.filter((g) =>
+      g.rule?.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [guidelines, searchTerm]
   )
 
   return (
@@ -44,6 +45,7 @@ function MemoryPage() {
               fetchMemoryStatus()
               reflectionApi.getGuidelines().then(setGuidelines)
             }}
+            aria-label="刷新"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -102,6 +104,7 @@ function MemoryPage() {
                     size="sm"
                     onClick={handleClearEpisodic}
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    aria-label="清空情节记忆"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
                     Clear
@@ -146,6 +149,7 @@ function MemoryPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="搜索 Guidelines"
               />
             </div>
           </CardHeader>
