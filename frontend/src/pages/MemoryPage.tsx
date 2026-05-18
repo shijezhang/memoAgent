@@ -1,11 +1,10 @@
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Database, MessageSquare, RefreshCw, Trash2, BookOpen, Cpu } from 'lucide-react'
+import { Brain, Database, MessageSquare, RefreshCw, Trash2, BookOpen } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { memoryApi, reflectionApi } from '../api/client'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { Badge } from '../components/ui/Badge'
 import type { KGNode } from '../api/types'
 
 function MemoryPage() {

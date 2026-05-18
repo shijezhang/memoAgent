@@ -4,7 +4,6 @@ import { History, Search, ChevronDown, ChevronUp, AlertCircle, Code, GitBranch, 
 import { useStore } from '../store/useStore'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
-import type { ReflectionLogEntry } from '../api/types'
 
 function ReflectionPage() {
   const reflections = useStore((state) => state.reflections)

@@ -9,7 +9,6 @@ import { cn } from '../lib/cn'
 
 function ChatPage() {
   const [input, setInput] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
 
   const messages = useStore((state) => state.messages)
@@ -35,7 +34,7 @@ function ChatPage() {
     addMessage({ role: 'user', content: userMessage })
     setLoading(true)
     setStreamingContent('')
-    setIsStreaming(false)
+    setStreamingContent('')
 
     try {
       const response = await chatApi.sendMessage(userMessage, sessionId || undefined)

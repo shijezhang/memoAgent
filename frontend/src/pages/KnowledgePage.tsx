@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { motion } from 'framer-motion'
-import { Search, Plus, Trash2, X, Circle, BookOpen } from 'lucide-react'
+import { Search, Plus, Trash2, Circle } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { knowledgeApi } from '../api/client'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Badge } from '../components/ui/Badge'
-import { cn } from '../lib/cn'
-import type { KGEdge } from '../api/types'
 
 interface GraphNode {
   id: string

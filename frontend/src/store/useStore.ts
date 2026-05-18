@@ -38,7 +38,7 @@ interface Store {
   fetchReflections: (limit?: number, entity?: string) => Promise<void>
 }
 
-export const useStore = create<Store>((set, get) => ({
+export const useStore = create<Store>((set) => ({
   // Initial state
   messages: [],
   sessionId: '',
