@@ -1,0 +1,53 @@
+.dockerignore
+  s_4e61fc471ad589::t_227a731ba2a390 1-43
+.github/workflows/ci.yml
+  s_4e61fc471ad589::t_74c66888532a2c 1-62
+Dockerfile.backend
+  s_4e61fc471ad589::t_a9f61e0a576217 7,12-17,21-23
+README.md
+  s_4e61fc471ad589::t_511252a7ce10f5 15
+experiments/run_experiment1.py
+  s_4e61fc471ad589::t_7805061c9ff76a 23-25
+experiments/run_experiment2.py
+  s_4e61fc471ad589::t_b603d3e268c79b 20-22
+experiments/run_experiment3.py
+  s_4e61fc471ad589::t_8eb823e089eed6 27-29
+frontend/.eslintrc.json
+  s_4e61fc471ad589::t_61e9f847883e0a 1-31
+frontend/.prettierrc.json
+  s_4e61fc471ad589::t_7b1e41fa259209 2-7
+frontend/package.json
+  s_4e61fc471ad589::t_97bf2f708e9914 8-10,35-41
+frontend/src/hooks/useWebSocket.ts
+  s_4e61fc471ad589::t_e959ba1cdf1764 7-8,14-21,35-36,42-45,51,63,69-77,82,87-89,91,94-95
+frontend/src/pages/ChatPage.tsx
+  s_4e61fc471ad589::t_0d1a1ff181adf7 147-148,153
+frontend/src/store/useStore.ts
+  s_4e61fc471ad589::t_29beaacb708a20 6,30,54-58
+nginx.conf
+  s_4e61fc471ad589::t_48eef7d97c6b19 6-23
+pyproject.toml
+  s_4e61fc471ad589::t_2ec45be8399398 10-20,25-29,40-51
+src/memo_agent/api/app.py
+  s_4e61fc471ad589::t_befc997d663c82 4,6,9-10,26-33,36,39
+src/memo_agent/api/schemas.py
+  s_4e61fc471ad589::t_89cc698510a022 3,7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5b7479f4bd1c59e20c05d943406b4a8c963d1c9e",
+  "prompts": {},
+  "sessions": {
+    "s_4e61fc471ad589": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad2062a5-4898-45f7-95e3-4e51499f8de8",
+        "model": "unknown"
+      },
+      "human_author": "zhangshijie <zhangshijie.bd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
