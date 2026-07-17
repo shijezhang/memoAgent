@@ -112,7 +112,3 @@ pytest tests/
 ## 许可证
 
 MIT License
-
-## 作者
-
-张世杰 ([@shijezhang](https://github.com/shijezhang))
