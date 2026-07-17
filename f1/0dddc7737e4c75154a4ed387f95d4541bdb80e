@@ -1,0 +1,25 @@
+.gitignore
+  s_e9db4e44b17fdd::t_8bc38379ed6b4d 1,4-14,16-19,22-58
+LICENSE
+  s_e9db4e44b17fdd::t_f50524671a1b4f 1-21
+README.md
+  s_e9db4e44b17fdd::t_f739d45969fafa 1-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f10dddc7737e4c75154a4ed387f95d4541bdb80e",
+  "prompts": {},
+  "sessions": {
+    "s_e9db4e44b17fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01ddd321-6f79-4da2-940b-1d69e390ba75",
+        "model": "unknown"
+      },
+      "human_author": "zhangshijie <zhangshijie.bd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
