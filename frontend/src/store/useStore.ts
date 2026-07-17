@@ -3,6 +3,7 @@ import type { MemoryStatus, KnowledgeGraph, ReflectionLogEntry } from '../api/ty
 import { memoryApi, knowledgeApi, reflectionApi } from '../api/client'
 
 export interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
   guidelines?: string[]
@@ -26,7 +27,7 @@ interface Store {
   reflections: ReflectionLogEntry[]
 
   // Actions
-  addMessage: (message: Message) => void
+  addMessage: (message: Omit<Message, 'id'> & { id?: string }) => void
   setSessionId: (id: string) => void
   setLoading: (loading: boolean) => void
   clearMessages: () => void
@@ -50,7 +51,11 @@ export const useStore = create<Store>((set) => ({
 
   // Chat actions
   addMessage: (message) => {
-    set((state) => ({ messages: [...state.messages, message] }))
+    const messageWithId = {
+      ...message,
+      id: message.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    }
+    set((state) => ({ messages: [...state.messages, messageWithId] }))
   },
 
   setSessionId: (id) => set({ sessionId: id }),

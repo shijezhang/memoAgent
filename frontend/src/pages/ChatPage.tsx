@@ -144,13 +144,13 @@ function ChatPage() {
             </motion.div>
           )}
 
-          {messages.map((msg, idx) => (
-            <MessageBubble key={idx} message={msg} />
+          {messages.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} />
           ))}
 
           {isLoading && streamingContent && (
             <MessageBubble
-              message={{ role: 'assistant', content: streamingContent }}
+              message={{ id: 'streaming', role: 'assistant', content: streamingContent }}
               isStreaming
             />
           )}

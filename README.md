@@ -12,7 +12,7 @@
 ## 技术栈
 
 **后端**
-- Python 3.11+
+- Python 3.9+
 - FastAPI + Uvicorn
 - LangChain + LangChain-Anthropic/OpenAI
 - ChromaDB (向量存储)

@@ -20,8 +20,9 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).parent))
 
-# 设置 API Key
-os.environ["DEEPSEEK_API_KEY"] = "sk-a0435910197d4e34a94292e9e5207b75"
+if not os.environ.get("DEEPSEEK_API_KEY"):
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent / ".env")
 
 from memo_agent.config import Config
 from memo_agent.memory.semantic import SemanticMemory
