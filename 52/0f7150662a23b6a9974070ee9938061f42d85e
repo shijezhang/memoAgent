@@ -1,0 +1,21 @@
+README.md
+  s_4e61fc471ad589::t_22bea0a64a112f 3,5,7,9-12,14,16,18-22,24-28,30-101,107-113,115,118-125,127-133,136,140,143-146,148-180,183,185-192,195-204,207-210,212,214-227,229-255,258-259,261,263-264,266-267,269-271,274-280,284-411,413-417,419,421-424
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "520f7150662a23b6a9974070ee9938061f42d85e",
+  "prompts": {},
+  "sessions": {
+    "s_4e61fc471ad589": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad2062a5-4898-45f7-95e3-4e51499f8de8",
+        "model": "unknown"
+      },
+      "human_author": "zhangshijie <zhangshijie.bd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
