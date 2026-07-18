@@ -1,215 +1,215 @@
 # MemoAgent
 
-A production-grade AI agent framework with persistent memory and reflection learning capabilities. MemoAgent implements a three-tier memory architecture (semantic, episodic, working) and learns continuously from user corrections through automated reflection mechanisms.
+一个具备持久化记忆和反思学习能力的生产级 AI Agent 框架。MemoAgent 实现了三层记忆架构（语义记忆、情节记忆、工作记忆），并通过自动化的反思学习机制，从用户纠正中持续学习和改进。
 
-## Overview
+## 项目概述
 
-Modern large language models excel at in-context learning but lack persistent memory across sessions. MemoAgent addresses this limitation by providing:
+当前的大语言模型在上下文学习（in-context learning）方面表现优异，但跨会话的持久化记忆能力普遍缺失。MemoAgent 针对这一局限提供了如下能力：
 
-- **Persistent Semantic Memory**: Knowledge graph storing entities, relations, and validated guidelines extracted through reflection
-- **Episodic Memory**: Vector database indexing historical conversations for context retrieval
-- **Working Memory**: Session-scoped conversation buffer with intelligent context assembly
-- **Reflection Learning**: Automated extraction of reasoning rules from user corrections, enabling continuous improvement
+- **持久化语义记忆**：以知识图谱形式存储实体、关系以及通过反思沉淀下来的规则（Guideline）
+- **情节记忆**：基于向量数据库索引历史对话，支持相关上下文检索
+- **工作记忆**：会话级的对话缓冲区，并配合智能的上下文组装策略
+- **反思学习**：从用户纠正中自动提取可泛化的推理规则，实现持续改进
 
-## Features
+## 核心特性
 
-### Core Capabilities
+### 基础能力
 
-- **Multi-tier Memory System**
-  - Semantic memory backed by a NetworkX directed graph
-  - Episodic memory using ChromaDB with sentence-transformer embeddings
-  - Working memory with configurable token budget allocation
-  - Mixed retrieval combining KG subgraph traversal and vector similarity
+- **多级记忆系统**
+  - 语义记忆基于 NetworkX 有向图
+  - 情节记忆基于 ChromaDB 向量数据库，使用 sentence-transformer 嵌入
+  - 工作记忆支持可配置的 token 预算分配
+  - 混合检索：结合知识图谱子图遍历与向量相似度检索
 
-- **Reflection Learning**
-  - Detects user corrections via keyword matching and explicit commands
-  - Extracts generalizable guidelines using LLM-based reflection
-  - Validates guidelines for duplication before updating the knowledge graph
-  - Maintains an audit trail in structured JSONL logs
+- **反思学习**
+  - 通过关键词匹配和显式命令识别用户纠正
+  - 使用 LLM 从纠正内容中提取可泛化的规则
+  - 在写入知识图谱前进行去重校验
+  - 以结构化 JSONL 格式维护完整的审计日志
 
-- **Production-Ready Backend**
-  - FastAPI with WebSocket streaming support
-  - LLM retry mechanism with exponential backoff (1s → 2s → 4s)
-  - Entity extraction caching using MD5 hashing
-  - Token budget management (semantic: 1000 tokens, episodic: 1500 tokens, total: 80% of context window)
-  - CORS, security headers, and health check endpoints
+- **生产级后端**
+  - 基于 FastAPI，支持 WebSocket 流式响应
+  - LLM 调用带指数退避重试机制（1s → 2s → 4s）
+  - 实体抽取结果基于 MD5 缓存，减少重复调用
+  - Token 预算管理（语义记忆：1000 tokens，情节记忆：1500 tokens，总预算为上下文窗口的 80%）
+  - 内置 CORS、安全响应头与健康检查接口
 
-- **Modern Web Interface**
-  - React 18 + TypeScript + Vite frontend
-  - Auto-reconnecting WebSocket with exponential backoff
-  - Real-time streaming response rendering
-  - Memory status dashboard and knowledge graph visualization
+- **现代化前端**
+  - React 18 + TypeScript + Vite
+  - WebSocket 断线自动重连（指数退避）
+  - 实时流式响应渲染
+  - 记忆状态看板与知识图谱可视化
 
-### System Architecture
+### 系统架构
 
 ```mermaid
 graph TB
-    User[User Input] --> API[FastAPI Backend]
+    User[用户输入] --> API[FastAPI 后端]
     API --> SM[SessionManager]
-    SM --> WM[Working Memory]
-    SM --> ReflectionDetector{Reflection?}
-    ReflectionDetector -->|Yes| Reflector[Reflector]
-    Reflector --> KGUpdater[KG Updater]
-    KGUpdater --> SeM[Semantic Memory]
-    ReflectionDetector -->|No| Retriever[Context Retriever]
+    SM --> WM[工作记忆]
+    SM --> ReflectionDetector{是否为纠正?}
+    ReflectionDetector -->|是| Reflector[反思模块]
+    Reflector --> KGUpdater[知识图谱更新器]
+    KGUpdater --> SeM[语义记忆]
+    ReflectionDetector -->|否| Retriever[上下文检索]
     Retriever --> SeM
-    Retriever --> EM[Episodic Memory]
+    Retriever --> EM[情节记忆]
     Retriever --> WM
-    Retriever --> ContextAssembler[Context Assembler]
+    Retriever --> ContextAssembler[上下文组装器]
     ContextAssembler --> LLM[DeepSeek LLM]
-    LLM --> EntityExtractor[Entity Extractor]
+    LLM --> EntityExtractor[实体抽取器]
     EntityExtractor --> SeM
-    LLM --> Response[Response]
+    LLM --> Response[生成响应]
     Response --> EM
     Response --> WM
     Response --> User
 
-    SeM -.->|NetworkX DiGraph| KG[(Knowledge Graph)]
-    EM -.->|ChromaDB| VDB[(Vector DB)]
-    WM -.->|In-Memory| Turns[(Conversation Turns)]
+    SeM -.->|NetworkX DiGraph| KG[(知识图谱)]
+    EM -.->|ChromaDB| VDB[(向量数据库)]
+    WM -.->|内存存储| Turns[(对话轮次)]
 ```
 
-### Memory System Details
+### 记忆系统细节
 
-**Semantic Memory (Knowledge Graph)**
-- Nodes: entities (concepts, models, tasks) and guidelines (reflection-derived rules)
-- Edges: typed relations (`variant_of`, `uses`, `governs`, etc.)
-- Subgraph retrieval: BFS traversal from query entities up to a configurable depth
-- Storage: JSON serialization via NetworkX
+**语义记忆（知识图谱）**
+- 节点：实体（概念、模型、任务）与规则（反思沉淀的 Guideline）
+- 边：带类型的关系（`variant_of`、`uses`、`governs` 等）
+- 子图检索：从查询实体出发进行 BFS 遍历，深度可配置
+- 存储方式：通过 NetworkX 序列化为 JSON
 
-**Episodic Memory (Vector Database)**
-- Collection: ChromaDB with `all-MiniLM-L6-v2` embeddings (384 dimensions)
-- Documents: `{timestamp} User: {query}\nAssistant: {response}` format
-- Retrieval: cosine similarity, top-k with a configurable threshold
-- Metadata: timestamp and conversation_id for filtering
+**情节记忆（向量数据库）**
+- 集合：ChromaDB，使用 `all-MiniLM-L6-v2` 嵌入模型（384 维）
+- 文档格式：`{timestamp} User: {query}\nAssistant: {response}`
+- 检索方式：余弦相似度，Top-K 检索（K 可配置）
+- 元数据：时间戳、conversation_id，用于过滤
 
-**Working Memory**
-- FIFO buffer of recent conversation turns (default: 50 turns max)
-- Tracks role (user/assistant) and message content
-- Cleared on session start or explicit reset
+**工作记忆**
+- FIFO 缓冲区，保存最近的对话轮次（默认最多 50 轮）
+- 记录角色（user/assistant）与消息内容
+- 会话开始或显式重置时清空
 
-## Quick Start
+## 快速开始
 
-### Prerequisites
+### 环境要求
 
 - Python 3.11+
-- Node.js 18+ (for frontend)
-- Docker & Docker Compose (optional, for containerized deployment)
+- Node.js 18+（前端）
+- Docker & Docker Compose（可选，用于容器化部署）
 
-### Environment Setup
+### 环境配置
 
-1. Clone the repository:
+1. 克隆仓库：
 ```bash
 git clone https://github.com/shijezhang/memoAgent.git
 cd memoAgent
 ```
 
-2. Create a `.env` file in the project root:
+2. 在项目根目录创建 `.env` 文件：
 ```bash
 DEEPSEEK_API_KEY=your-api-key-here
 ```
 
-### Option 1: Docker Deployment (Recommended)
+### 方式一：Docker 部署（推荐）
 
 ```bash
 docker-compose up -d
 ```
 
-Access the application:
-- Frontend: http://localhost
-- Backend API: http://localhost/api
-- API Docs: http://localhost/api/docs
+访问地址：
+- 前端：http://localhost
+- 后端 API：http://localhost/api
+- API 文档：http://localhost/api/docs
 
-### Option 2: Local Development
+### 方式二：本地开发
 
-**Backend:**
+**后端：**
 ```bash
-# Install dependencies
+# 安装依赖
 pip install -e .
 
-# Run server
+# 启动服务
 python -m memo_agent.api.app
-# Or with uvicorn
+# 或使用 uvicorn
 uvicorn memo_agent.api.app:app --host 0.0.0.0 --port 8000
 ```
 
-**Frontend:**
+**前端：**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+访问地址：
+- 前端：http://localhost:3000
+- 后端 API：http://localhost:8000
+- API 文档：http://localhost:8000/docs
 
-## Configuration
+## 配置说明
 
-Configuration is managed via `src/memo_agent/config.py` and environment variables.
+配置项由 `src/memo_agent/config.py` 及环境变量统一管理。
 
-### Key Settings
+### 关键配置项
 
-| Parameter | Default | Description |
+| 参数 | 默认值 | 说明 |
 |-----------|---------|-------------|
-| `llm_provider` | `deepseek` | LLM provider identifier |
-| `llm_model` | `deepseek-chat` | Model name |
-| `llm_base_url` | `https://api.deepseek.com` | API endpoint |
-| `embedding_model` | `all-MiniLM-L6-v2` | Sentence transformer model |
-| `max_context_tokens` | `64000` | Total context window limit |
-| `context_usage_ratio` | `0.8` | Proportion of context allocated to memory |
-| `subgraph_max_tokens` | `1000` | Token budget for semantic memory |
-| `episodic_max_tokens` | `1500` | Token budget for episodic memory |
-| `episodic_top_k` | `3` | Number of similar conversations to retrieve |
-| `reflection_recent_turns` | `3` | Conversation history used for reflection |
-| `llm_max_retries` | `3` | Max retry attempts on LLM failure |
-| `llm_retry_base_delay` | `1.0` | Base delay in seconds (exponential backoff) |
-| `working_memory_max_turns` | `50` | Max turns in working memory buffer |
-| `negation_keywords` | `["不对", "错了", ...]` | Keywords that trigger reflection detection |
+| `llm_provider` | `deepseek` | LLM 提供商标识 |
+| `llm_model` | `deepseek-chat` | 模型名称 |
+| `llm_base_url` | `https://api.deepseek.com` | API 地址 |
+| `embedding_model` | `all-MiniLM-L6-v2` | 句向量嵌入模型 |
+| `max_context_tokens` | `64000` | 上下文窗口总长度 |
+| `context_usage_ratio` | `0.8` | 分配给记忆内容的上下文比例 |
+| `subgraph_max_tokens` | `1000` | 语义记忆 token 预算 |
+| `episodic_max_tokens` | `1500` | 情节记忆 token 预算 |
+| `episodic_top_k` | `3` | 情节记忆检索返回的相似对话数量 |
+| `reflection_recent_turns` | `3` | 反思时回溯的历史轮次数 |
+| `llm_max_retries` | `3` | LLM 调用失败时的最大重试次数 |
+| `llm_retry_base_delay` | `1.0` | 重试基础延迟（秒），采用指数退避 |
+| `working_memory_max_turns` | `50` | 工作记忆缓冲区最大轮次 |
+| `negation_keywords` | `["不对", "错了", ...]` | 触发反思检测的关键词 |
 
-### Token Budget Allocation
+### Token 预算分配
 
-The system allocates context window capacity as follows:
+系统按如下方式分配上下文窗口容量：
 
 ```python
 available_tokens = max_context_tokens * context_usage_ratio  # 64000 * 0.8 = 51200
 guideline_tokens = min(guideline_actual, available - subgraph_max - episodic_max)
-subgraph_tokens = min(subgraph_actual, subgraph_max_tokens)  # max 1000
-episodic_tokens = min(episodic_actual, episodic_max_tokens)  # max 1500
+subgraph_tokens = min(subgraph_actual, subgraph_max_tokens)  # 上限 1000
+episodic_tokens = min(episodic_actual, episodic_max_tokens)  # 上限 1500
 working_tokens = available - (guideline_tokens + subgraph_tokens + episodic_tokens)
 ```
 
-## API Reference
+## API 参考
 
-### Chat Endpoints
+### 对话接口
 
 **POST /api/chat**
 ```json
 {
-  "message": "What is the Transformer architecture?",
-  "session_id": "optional-session-id"
+  "message": "什么是 Transformer 架构？",
+  "session_id": "可选的会话 ID"
 }
 ```
 
-Response:
+响应：
 ```json
 {
-  "response": "Transformer is a sequence model architecture...",
-  "session_id": "generated-or-provided-session-id",
+  "response": "Transformer 是一种基于自注意力机制的序列模型架构...",
+  "session_id": "自动生成或传入的会话 ID",
   "entities": ["Transformer", "Self-Attention"],
-  "guidelines_used": ["Rule about Transformers..."],
+  "guidelines_used": ["与 Transformer 相关的规则..."],
   "is_reflection": false,
   "guideline": null
 }
 ```
 
 **WebSocket /api/chat/ws**
-- Accepts text messages (user queries)
-- Streams the response back
-- Sends a `[DONE]` marker after completion
+- 接收文本消息（用户提问）
+- 流式返回响应内容
+- 响应完成后发送 `[DONE]` 标记
 
-### Memory Management
+### 记忆管理
 
 **GET /api/memory/status**
 ```json
@@ -228,12 +228,12 @@ Response:
 ```
 
 **DELETE /api/memory/episodic**
-Clears all episodic memory (vector database). Returns `{"status": "ok"}`.
+清空全部情节记忆（向量数据库）。返回 `{"status": "ok"}`。
 
-### Knowledge Graph
+### 知识图谱
 
 **GET /api/knowledge/graph**
-Returns the complete knowledge graph structure:
+返回完整的知识图谱结构：
 ```json
 {
   "nodes": [
@@ -246,179 +246,179 @@ Returns the complete knowledge graph structure:
 ```
 
 **GET /api/knowledge/subgraph?entity=BERT**
-Returns the subgraph centered on the specified entity (depth = 1 traversal).
+返回以指定实体为中心的子图（深度为 1 的遍历）。
 
 **POST /api/knowledge/entity**
 ```json
 {
-  "name": "New Entity Name"
+  "name": "新实体名称"
 }
 ```
 
 **DELETE /api/knowledge/entity/{entity_id}**
-Removes an entity and its edges from the knowledge graph.
+删除指定实体及其关联的边。
 
-### Reflection & Guidelines
+### 反思与规则
 
 **GET /api/reflections?limit=50&entity=BERT**
-Returns reflection log entries (most recent first).
+返回反思日志记录（按时间倒序）。
 
 **GET /api/guidelines**
-Returns all guidelines (rule-type nodes) in the knowledge graph.
+返回知识图谱中所有的规则（rule 类型节点）。
 
-## Development
+## 开发指南
 
-### Code Quality
+### 代码质量
 
 ```bash
-# Linting
+# 代码检查
 ruff check src/
 
-# Type checking
+# 类型检查
 mypy src/
 
-# Run tests
+# 运行测试
 pytest tests/
 ```
 
-### Frontend Development
+### 前端开发
 
 ```bash
 cd frontend
 
-# Linting
+# 代码检查
 npm run lint
 
-# Type checking
+# 类型检查
 tsc --noEmit
 
-# Format code
+# 代码格式化
 npm run format
 
-# Build for production
+# 生产构建
 npm run build
 ```
 
-### CI/CD Pipeline
+### CI/CD 流程
 
-A GitHub Actions workflow runs on every push:
-- Backend: pytest, ruff lint, mypy type checking
-- Frontend: lint, TypeScript build verification
+GitHub Actions 会在每次推送时自动运行：
+- 后端：pytest 测试、ruff 代码检查、mypy 类型检查
+- 前端：ESLint 检查、TypeScript 构建验证
 
-See `.github/workflows/ci.yml` for details.
+详见 `.github/workflows/ci.yml`。
 
-## Experiments & Results
+## 实验与结果
 
-The project includes three controlled experiments evaluating memory system performance. Full details in [docs/EXPERIMENT_REPORT.md](docs/EXPERIMENT_REPORT.md).
+项目包含三个评估记忆系统性能的对照实验。完整细节见 [docs/EXPERIMENT_REPORT.md](docs/EXPERIMENT_REPORT.md)。
 
-### Experiment 1: Guideline Retrieval Accuracy
+### 实验一：规则检索准确性
 
-**Setup**: 15 pre-seeded guidelines, 20 questions requiring guideline application
+**设置**：预置 15 条规则，20 个需要应用规则回答的问题
 
-| Metric | Result |
+| 指标 | 结果 |
 |--------|--------|
-| Questions answered | 20/20 |
-| Guidelines matched | 15/15 (100%) |
-| Avg. guidelines per response | 2.15 |
-| False positive rate | 0% |
+| 完成回答数 | 20/20 |
+| 规则匹配成功数 | 15/15（100%） |
+| 平均每次响应引用规则数 | 2.15 |
+| 误检率 | 0% |
 
-**Key finding**: Semantic memory retrieves relevant guidelines with zero false positives when entities are correctly extracted from the query.
+**核心发现**：当实体抽取准确时，语义记忆能够以零误检率检索到相关规则。
 
-### Experiment 2: Reflection Learning
+### 实验二：反思学习效果
 
-**Setup**: 10 correction scenarios, each providing user feedback on an incorrect response
+**设置**：10 个纠正场景，每个场景针对一次错误回答提供用户纠正
 
-| Metric | Result |
+| 指标 | 结果 |
 |--------|--------|
-| Corrections provided | 10/10 |
-| Guidelines extracted | 10/10 (100%) |
-| Duplicate prevention | 10/10 (100%) |
-| Guidelines reused in retests | 9/10 (90%) |
+| 完成纠正数 | 10/10 |
+| 规则提取成功数 | 10/10（100%） |
+| 去重校验成功数 | 10/10（100%） |
+| 复测中规则命中数 | 9/10（90%） |
 
-**Key finding**: The reflection mechanism reliably extracts actionable guidelines from corrections. The one miss in retests traced back to an entity extraction failure, not a reflection failure.
+**核心发现**：反思机制能够稳定地从纠正内容中提取可执行规则。复测中唯一的未命中案例，问题出在实体抽取环节，而非反思本身。
 
-### Experiment 3: Episodic Memory Retrieval
+### 实验三：情节记忆检索
 
-**Setup**: 30 conversations stored, 15 test queries requiring historical context
+**设置**：存储 30 段对话，15 个需要历史上下文的测试查询
 
-| Metric | Result |
+| 指标 | 结果 |
 |--------|--------|
-| Queries executed | 15/15 |
-| Relevant conversations retrieved | 12/15 (80%) |
-| Avg. similarity score | 0.71 |
-| False retrievals | 2/15 (13%) |
+| 完成查询数 | 15/15 |
+| 相关对话检索成功数 | 12/15（80%） |
+| 平均相似度得分 | 0.71 |
+| 误检数 | 2/15（13%） |
 
-**Key finding**: Vector-based episodic retrieval achieves 80% recall with a 13% false-positive rate. Performance degrades on queries with terminology mismatch (e.g. synonym usage).
+**核心发现**：基于向量的情节记忆检索召回率达到 80%，误检率为 13%。在存在术语不一致（如同义词表达）的查询上表现有所下降。
 
-### Observations
+### 观察与结论
 
-- **Strengths**: Guidelines provide deterministic, high-precision memory. Reflection converges to a stable rule set after 5-10 corrections.
-- **Limitations**: Episodic retrieval is sensitive to embedding quality; entity extraction requires careful prompt engineering.
-- **Future work**: hybrid retrieval combining dense and sparse methods, multi-hop reasoning over the knowledge graph, guideline pruning strategies.
+- **优势**：规则型记忆提供了确定性、高精度的检索能力。反思机制在 5-10 次纠正后趋于收敛，形成稳定的规则集。
+- **局限**：情节记忆检索对嵌入质量较为敏感；实体抽取依赖精心设计的 Prompt。
+- **未来方向**：结合稠密与稀疏检索的混合方案、知识图谱上的多跳推理、规则剪枝策略。
 
-## Project Structure
+## 项目结构
 
 ```
 memoAgent/
-├── src/memo_agent/          # Main package
-│   ├── api/                 # FastAPI backend
-│   │   ├── routes/          # API endpoints
-│   │   ├── schemas.py       # Pydantic models
-│   │   └── app.py           # Application factory
-│   ├── memory/              # Memory implementations
-│   │   ├── semantic.py      # Knowledge graph
-│   │   ├── episodic.py      # Vector database
-│   │   └── working.py       # Session buffer
-│   ├── core/                # Core orchestration
-│   ├── reflection/          # Reflection learning
-│   │   ├── reflector.py     # Guideline extraction
-│   │   └── kg_updater.py    # Knowledge graph updates
-│   ├── utils/                # Utilities (LLM retry, token counting)
-│   ├── models.py             # Data models
-│   └── config.py             # Configuration
-├── frontend/                 # React frontend
+├── src/memo_agent/          # 主程序包
+│   ├── api/                 # FastAPI 后端
+│   │   ├── routes/          # API 路由
+│   │   ├── schemas.py       # Pydantic 数据模型
+│   │   └── app.py           # 应用工厂
+│   ├── memory/              # 记忆系统实现
+│   │   ├── semantic.py      # 知识图谱
+│   │   ├── episodic.py      # 向量数据库
+│   │   └── working.py       # 会话缓冲区
+│   ├── core/                # 核心编排逻辑
+│   ├── reflection/          # 反思学习
+│   │   ├── reflector.py     # 规则提取
+│   │   └── kg_updater.py    # 知识图谱更新
+│   ├── utils/                # 工具模块（LLM 重试、token 计数）
+│   ├── models.py             # 数据模型
+│   └── config.py             # 配置管理
+├── frontend/                 # React 前端
 │   ├── src/
-│   │   ├── components/       # UI components
-│   │   ├── hooks/            # Custom hooks (e.g. useWebSocket)
-│   │   ├── store/             # Zustand state management
-│   │   └── pages/             # Route pages
+│   │   ├── components/       # UI 组件
+│   │   ├── hooks/            # 自定义 hooks（如 useWebSocket）
+│   │   ├── store/             # Zustand 状态管理
+│   │   └── pages/             # 路由页面
 │   └── package.json
-├── experiments/              # Evaluation scripts
+├── experiments/               # 评估脚本
 │   ├── run_experiment1.py
 │   ├── run_experiment2.py
 │   └── run_experiment3.py
-├── docs/                      # Documentation
+├── docs/                      # 文档
 │   ├── EXPERIMENT_REPORT.md
 │   └── EXPERIMENT_DESIGN.md
-├── docker-compose.yml         # Multi-container setup
-├── Dockerfile.backend         # Backend container
-├── Dockerfile.frontend        # Frontend container
-├── nginx.conf                 # Reverse proxy config
-├── pyproject.toml             # Python dependencies
+├── docker-compose.yml         # 多容器编排配置
+├── Dockerfile.backend         # 后端容器
+├── Dockerfile.frontend        # 前端容器
+├── nginx.conf                 # 反向代理配置
+├── pyproject.toml             # Python 依赖管理
 └── README.md
 ```
 
-## License
+## 许可证
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License，详见 [LICENSE](LICENSE)。
 
-## Author
+## 作者
 
 张世杰 (Zhang Shijie) - [GitHub](https://github.com/shijezhang)
 
-## Contributing
+## 贡献指南
 
-Contributions are welcome:
+欢迎参与贡献：
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Ensure tests and linting pass (`ruff check`, `mypy`, `pytest`)
-4. Commit with descriptive messages
-5. Push to your fork and open a pull request
+1. Fork 本仓库
+2. 创建功能分支（`git checkout -b feature/your-feature`）
+3. 确保测试与代码检查通过（`ruff check`、`mypy`、`pytest`）
+4. 提交清晰的变更说明
+5. Push 到你的 Fork 并提交 Pull Request
 
-## Acknowledgments
+## 致谢
 
-- Built with [LangChain](https://github.com/langchain-ai/langchain) for LLM orchestration
-- Powered by [DeepSeek](https://www.deepseek.com/) language models
-- Embeddings via [sentence-transformers](https://www.sbert.net/)
-- Vector storage using [ChromaDB](https://www.trychroma.com/)
+- 基于 [LangChain](https://github.com/langchain-ai/langchain) 进行 LLM 编排
+- 由 [DeepSeek](https://www.deepseek.com/) 语言模型提供支持
+- 嵌入模型来自 [sentence-transformers](https://www.sbert.net/)
+- 向量存储使用 [ChromaDB](https://www.trychroma.com/)
