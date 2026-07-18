@@ -402,10 +402,6 @@ memoAgent/
 
 MIT License，详见 [LICENSE](LICENSE)。
 
-## 作者
-
-张世杰 (Zhang Shijie) - [GitHub](https://github.com/shijezhang)
-
 ## 贡献指南
 
 欢迎参与贡献：
